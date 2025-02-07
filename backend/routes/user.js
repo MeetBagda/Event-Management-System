@@ -7,6 +7,7 @@ const zod = require("zod");
 const cors = require("cors");
 const { userSchemaTypes } = require("../types");
 const { authMiddleware } = require("../middleware");
+const bcrypt = require("bcrypt");
 
 router.use(cors());
 
@@ -68,39 +69,43 @@ const signinBody = zod.object({
 });
 
 router.post("/signin", async (req, res) => {
-  const { success, error } = signinBody.safeParse(req.body);
-  if (!success) {
-    return res.status(400).json({
-      msg: "Invalid input",
-      errors: error.errors,
-    });
-  }
-
-  try {
-    const user = await User.findOne({ email: req.body.email });
-
-    if (!user) {
-      return res.status(401).json({ msg: "Incorrect email or password" });
+    const { success, error } = signinBody.safeParse(req.body);
+    if (!success) {
+      return res.status(400).json({
+        msg: "Invalid input",
+        errors: error.errors,
+      });
     }
-
-    if (req.body.password !== user.password) {
-      return res.status(401).json({ msg: "Incorrect email or password" });
+  
+    try {
+      const user = await User.findOne({ email: req.body.email });
+  
+      if (!user) {
+        return res.status(401).json({ msg: "Incorrect email or password" });
+      }
+  
+      // Compare the provided password with the stored hashed password
+      const passwordMatch = await bcrypt.compare(req.body.password, user.password);
+  
+      if (!passwordMatch) {
+        return res.status(401).json({ msg: "Incorrect email or password" });
+      }
+  
+      const userId = user._id;
+      const token = jwt.sign({ userId: userId }, JWT_SECRET, { expiresIn: "1h" });
+  
+      res.json({
+        token: token,
+        userId: userId,
+      });
+    } catch (error) {
+      console.error("Error during signin:", error);
+      res.status(500).json({
+        msg: "Failed to sign in",
+        error: error.message,
+      });
     }
-    const userId = user._id;
-    const token = jwt.sign({ userId: userId }, JWT_SECRET, { expiresIn: "1h" });
-
-    res.json({
-      token: token,
-      userId: userId,
-    });
-  } catch (error) {
-    console.error("Error during signin:", error);
-    res.status(500).json({
-      msg: "Failed to sign in",
-      error: error.message,
-    });
-  }
-});
+  });
 
 router.get("/users", async (req, res) => {
   try {
