@@ -6,8 +6,24 @@ const { JWT_SECRET } = require("../config");
 const zod = require("zod");
 const cors = require("cors");
 const { userSchemaTypes } = require("../types");
+const { authMiddleware } = require("../middleware");
 
 router.use(cors());
+
+router.get("/me", authMiddleware, async (req, res) => {
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+        return res.status(404).json({
+            message: "User not found",
+        });
+    }
+
+    res.json({
+        id: user._id,
+        username: user.username,
+    });
+});
 
 router.post("/signup", async (req, res) => {
   const createPayLoad = req.body;

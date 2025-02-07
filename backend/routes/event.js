@@ -6,6 +6,7 @@ const { JWT_SECRET } = require("../config");
 const zod = require("zod");
 const cors = require("cors");
 const { eventSchemaTypes } = require("../types");
+const { authMiddleware } = require("../middleware");
 
 router.use(cors());
 
@@ -25,7 +26,7 @@ router.get("/events", async (req, res) => {
   }
 });
 
-router.post("/event", async (req, res) => {
+router.post("/event",authMiddleware, async (req, res) => {
   const createPayLoad = req.body;
   const parsedPayLoad = eventSchemaTypes.safeParse(createPayLoad);
 
@@ -88,7 +89,7 @@ router.get("/event/:id", async (req, res) => {
   }
 });
 
-router.put("/event/:id", async (req, res) => {
+router.put("/event/:id",authMiddleware, async (req, res) => {
     const updatePayLoad = req.body;
     const parsedPayLoad = eventSchemaTypes.safeParse(updatePayLoad);
     
@@ -121,7 +122,7 @@ router.put("/event/:id", async (req, res) => {
     }
 });
 
-router.delete("/event/:id", async (req, res) => {
+router.delete("/event/:id",authMiddleware, async (req, res) => {
   try {
     const event = await Event.findByIdAndDelete(req.params.id);
 
