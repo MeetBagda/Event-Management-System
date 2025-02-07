@@ -7,15 +7,20 @@ const userSchemaTypes = z.object({
 });
 
 const eventSchemaTypes = z.object({
-    title: z.string(),
-    description: z.string(),
-    startTime: z.date(),
-    endTime: z.date(),
-    category: z.string(),
-    location: z.string(),
-    organizer: z.string(),
-    attendees: z.array(z.string()),
-    maxAttendees: z.number(),
-    imageUrl: z.string(),
-    price: z.number(),
+  title: z.string(),
+  description: z.string(),
+  startTime: z.date(),
+  endTime: z.date(),
+  category: z.string(),
+  location: z.string(),
+  organizer: z.string(),
+  attendees: z.array(z.string()),
+  maxAttendees: z.number(),
+  imageUrl: z.string(),
+  price: z.number(),
 });
+
+module.exports = {
+  userSchemaTypes,
+  eventSchemaTypes,
+};
