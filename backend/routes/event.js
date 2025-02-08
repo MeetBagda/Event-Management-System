@@ -38,6 +38,7 @@ router.post("/event",authMiddleware, async (req, res) => {
   }
 
   try {
+    const userId = req.userId;
     const event = await Event.create({
       title: createPayLoad.title,
       description: createPayLoad.description,
@@ -45,7 +46,7 @@ router.post("/event",authMiddleware, async (req, res) => {
       endTime: createPayLoad.endTime,
       category: createPayLoad.category,
       location: createPayLoad.location,
-      organizer: createPayLoad.organizer,
+      organizer: userId,
       attendees: createPayLoad.attendees,
       maxAttendees: createPayLoad.maxAttendees,
       imageUrl: createPayLoad.imageUrl,
@@ -56,6 +57,7 @@ router.post("/event",authMiddleware, async (req, res) => {
 
     res.status(201).json({
       msg: "Event created successfully",
+      userId: userId,
       eventId: eventId,
       event: event
     });
@@ -101,45 +103,61 @@ router.put("/event/:id",authMiddleware, async (req, res) => {
     }
     
     try {
-        const updatedEvent = await Event.findByIdAndUpdate(req.params.id, updatePayLoad, {
-        new: true,
-        });
-    
-        if (!updatedEvent) {
-        return res.status(404).json({ msg: "Event not found" });
-        }
-    
-        res.status(200).json({
-        msg: "Event updated successfully",
-        event: updatedEvent,
-        });
-    } catch (error) {
-        console.error("Error updating event:", error);
-        res.status(500).json({
-        msg: "Error updating event",
-        error: error.message,
-        });
-    }
+      const eventId = req.params.id;
+      const userId = req.userId;
+
+      const event = await Event.findById(eventId);
+
+      if (!event) {
+          return res.status(404).json({ msg: "Event not found" });
+      }
+
+      if (event.organizer.toString() !== userId) {
+          return res.status(403).json({ msg: "Unauthorized: You are not the organizer of this event" });
+      }
+
+      const updatedEvent = await Event.findByIdAndUpdate(eventId, updatePayLoad, { new: true });
+
+      res.status(200).json({
+          msg: "Event updated successfully",
+          event: updatedEvent,
+      });
+  } catch (error) {
+      console.error("Error updating event:", error);
+      res.status(500).json({
+          msg: "Error updating event",
+          error: error.message,
+      });
+  }
 });
 
 router.delete("/event/:id",authMiddleware, async (req, res) => {
   try {
-    const event = await Event.findByIdAndDelete(req.params.id);
+    const eventId = req.params.id;
+    const userId = req.userId;
+
+    const event = await Event.findById(eventId);
 
     if (!event) {
-      return res.status(404).json({ msg: "Event not found" });
+        return res.status(404).json({ msg: "Event not found" });
     }
+
+    if (event.organizer.toString() !== userId) {
+        return res.status(403).json({ msg: "Unauthorized: You are not the organizer of this event" });
+    }
+
+    await Event.findByIdAndDelete(eventId);
+
     res.status(200).json({
-      msg: "Event deleted successfully",
-      event: event,
+        msg: "Event deleted successfully",
     });
-  } catch (error) {
+} catch (error) {
     console.error("Error deleting event:", error);
     res.status(500).json({
-      msg: "Error deleting event",
-      error: error.message,
+        msg: "Error deleting event",
+        error: error.message,
     });
-  }
+}
 });
 
 module.exports = router;
