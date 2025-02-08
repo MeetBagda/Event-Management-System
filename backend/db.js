@@ -2,7 +2,10 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 
-mongoose.connect(process.env.MONGODB_URI);
+const nodeEnv = process.env.NODE_ENV || 'development';
+const mongoUri = nodeEnv === 'test' ? process.env.MONGODB_URI_TEST : process.env.MONGODB_URI;
+
+mongoose.connect(mongoUri);
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -14,7 +17,7 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true, 
+    unique: true,
   },
   password: {
     type: String,
@@ -32,7 +35,7 @@ const eventSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
-  }, 
+  },
   description: {
     type: String,
     required: true,
@@ -57,13 +60,13 @@ const eventSchema = new mongoose.Schema({
   },
   attendees: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', 
+    ref: 'User',
   }],
   maxAttendees: {
     type: Number,
     min: 0,
   },
-  imageUrl: String, 
+  imageUrl: String,
   price: {
     type: Number,
     min: 0,

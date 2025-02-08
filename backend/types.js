@@ -9,8 +9,8 @@ const userSchemaTypes = z.object({
 const eventSchemaTypes = z.object({
   title: z.string(),
   description: z.string(),
-  startTime: z.date(),
-  endTime: z.date(),
+  startTime: z.coerce.date(),  
+  endTime: z.coerce.date(),    
   category: z.string(),
   location: z.string(),
   organizer: z.string(),
