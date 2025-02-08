@@ -38,7 +38,7 @@ describe('User Endpoints', () => {
         expect(res.body).toHaveProperty('userId');
     });
     it('should signin an existing user', async () => {
-        // First, create a user
+        
         const createUserRes = await request(app)
             .post('/api/v1/user/signup')
             .send({
@@ -47,7 +47,7 @@ describe('User Endpoints', () => {
                 password: 'password123',
             });
         expect(createUserRes.statusCode).toEqual(201);
-        // Then, sign in
+        
         const res = await request(app)
             .post('/api/v1/user/signin')
             .send({
